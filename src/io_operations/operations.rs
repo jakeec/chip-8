@@ -7,7 +7,7 @@ use std::str;
 // in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.
 fn fn33(x: &char) {}
 
-pub fn IOOperation(instructions: &Vec<char>) {
+pub fn IOOperation<'a>(instructions: &Vec<char>, memory: &[u8; 0x1000], registers: &Vec<u8>) {
     let rand = instructions[1];
     let mut rator = instructions[2].to_string();
     rator.push(instructions[3]);
@@ -20,7 +20,10 @@ pub fn IOOperation(instructions: &Vec<char>) {
         "29" => println!("29!"),
         "33" => fn33(&rand),
         "55" => println!("55!"),
-        "65" => println!("65!"),
+        "65" => {
+            println!("65!");
+            println!("RAND: {}", rand);
+        }
         _ => println!("Operation not found {}", rator),
     }
 }

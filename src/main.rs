@@ -51,6 +51,23 @@ fn main() {
     let mut VD: Register = 0;
     let mut VE: Register = 0;
     let mut VF: Register = 0;
+    let mut registers: Vec<u8> = Vec::new();
+    registers.push(V0);
+    registers.push(V1);
+    registers.push(V2);
+    registers.push(V3);
+    registers.push(V4);
+    registers.push(V5);
+    registers.push(V6);
+    registers.push(V7);
+    registers.push(V8);
+    registers.push(V9);
+    registers.push(VA);
+    registers.push(VB);
+    registers.push(VC);
+    registers.push(VD);
+    registers.push(VE);
+    registers.push(VF);
     let mut I: AddressRegister = 0;
     let mut stack: Stack = [0; 48];
     let mut delay_timer: u64 = 0;
@@ -91,29 +108,36 @@ fn main() {
             'c' => {
                 let mut rng = rand::thread_rng();
                 let mut rnd: u8 = rng.gen_range(0, 255);
+                let mut a = String::from("0");
+                let mut b = String::from("0");
+                a.push(instructions[2]);
+                b.push(instructions[3]);
+                let kk = format!("{}{}", instructions[2], instructions[3]);
+                let x = hex::decode(&kk).unwrap();
+                let result = (rnd & x[0]) as u8;
                 match instructions[1] {
-                    '0' => V0 = rnd,
-                    '1' => V1 = rnd,
-                    '2' => V2 = rnd,
-                    '3' => V3 = rnd,
-                    '4' => V4 = rnd,
-                    '5' => V5 = rnd,
-                    '6' => V6 = rnd,
-                    '7' => V7 = rnd,
-                    '8' => V8 = rnd,
-                    '9' => V9 = rnd,
-                    'a' => VA = rnd,
-                    'b' => VB = rnd,
-                    'c' => VC = rnd,
-                    'd' => VD = rnd,
-                    'e' => VE = rnd,
-                    'f' => VF = rnd,
+                    '0' => V0 = result,
+                    '1' => V1 = result,
+                    '2' => V2 = result,
+                    '3' => V3 = result,
+                    '4' => V4 = result,
+                    '5' => V5 = result,
+                    '6' => V6 = result,
+                    '7' => V7 = result,
+                    '8' => V8 = result,
+                    '9' => V9 = result,
+                    'a' => VA = result,
+                    'b' => VB = result,
+                    'c' => VC = result,
+                    'd' => VD = result,
+                    'e' => VE = result,
+                    'f' => VF = result,
                     _ => panic!("Register V{} does not exist!", instructions[1]),
                 }
             }
             'd' => println!("DRW Vx, Vy, nibble; "),
             'e' => println!("SKP Vx, SKNP Vx; "),
-            'f' => IOOperation(&instructions),
+            'f' => IOOperation(&instructions, &memory, &registers),
             _ => panic!("Not a valid OpCode!"),
         }
     }
