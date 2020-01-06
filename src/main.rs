@@ -291,13 +291,23 @@ fn main() {
             },
             (0x0D, _, _, _) => {
                 let bytes = &memory[I..I+n];
+                let mut xr = x;
+                let mut yr = y;
                 println!("{}", bytes[0]);
                 {
                     let sprite = sprites[bytes[0]];
                     for row in &sprite {
                         let r = format!("{:b}", row);
-                        println!("{:?}", r.as_bytes().chunks(1));
+                        let items: Vec<_> = r.to_string().chars().map(|d| d.to_digit(10).unwrap()).collect();
+                        for item in items {
+                            display_buffer_front[yr][xr] = item as u8;
+                            xr = xr +1;
+                        }
+                        xr = x;
+                        yr = yr + 1;
                     }
+
+                    display(display_buffer_front);
                 }
                 //display(display_buffer_front);
             },
