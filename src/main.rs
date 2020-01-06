@@ -16,6 +16,22 @@ use register_operations::RegisterOperation;
 mod io_operations;
 use io_operations::IOOperation;
 
+fn display(buffer: [[u8; 64]; 32]) {
+    let mut vram = String::from("");
+    for column in &buffer {
+        for row in column.iter() {
+            match row {
+                0 => vram.push(' '),
+                1 => vram.push('*'),
+                _ => panic!("Invalid vram"),
+            }
+            vram.push('\n');
+        }
+    }
+
+    println!("{}", vram);
+}
+
 fn main() {
     let mut memory: [usize; 0x1000] = [0; 0x1000];
     let mut registers: [u8; 16] = [0; 16];
@@ -273,6 +289,18 @@ fn main() {
             (0x0A, _, _, _) => {
                 I = nnn;
             },
+            (0x0D, _, _, _) => {
+                let bytes = &memory[I..I+n];
+                println!("{}", bytes[0]);
+                {
+                    let sprite = sprites[bytes[0]];
+                    for row in &sprite {
+                        let r = format!("{:b}", row);
+                        println!("{:?}", r.as_bytes().chunks(1));
+                    }
+                }
+                //display(display_buffer_front);
+            },
             (0x0F, _, 0x03, 0x03) => {
                 let digits: Vec<_> = registers[x].to_string().chars().map(|d| d.to_digit(10).unwrap()).collect();
                 match digits.as_slice() {
@@ -296,12 +324,11 @@ fn main() {
                     registers[i] = memory[I+i] as u8;
                 }
             },
-            (0x0F, _, 0x02, 0x09) => {}
+            (0x0F, _, 0x02, 0x09) => {
+                I = registers[x] as usize;
+            }
             _ => println!("OpCode Not Found!"),
         }
-        println!("PC: {}", program_counter);
-        println!("Registers: {:?}", registers);
-        println!("Register I: {}", I);
     }
 
     // let mut events_loop = glium::glutin::EventsLoop::new();
