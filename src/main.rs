@@ -16,64 +16,16 @@ use register_operations::RegisterOperation;
 mod io_operations;
 use io_operations::IOOperation;
 
-type Memory = [u8; 0x1000];
-type Register = u8;
-type AddressRegister = u16;
-type Stack = [u8; 48];
-
-fn CLS(instructions: &Vec<char>) {
-    println!("Called CLS with parameters: {:?}", instructions);
-}
-
-fn RET(instructions: &Vec<char>) {
-    println!("Called RET with parameters: {:?}", instructions);
-}
-
-fn JP(instructions: &Vec<char>) {
-    println!("Called JP with parameters: {:?}", instructions);
-}
-
 fn main() {
-    let mut memory: Memory = [0; 0x1000];
-    let mut V0: Register = 0;
-    let mut V1: Register = 0;
-    let mut V2: Register = 0;
-    let mut V3: Register = 0;
-    let mut V4: Register = 0;
-    let mut V5: Register = 0;
-    let mut V6: Register = 0;
-    let mut V7: Register = 0;
-    let mut V8: Register = 0;
-    let mut V9: Register = 0;
-    let mut VA: Register = 0;
-    let mut VB: Register = 0;
-    let mut VC: Register = 0;
-    let mut VD: Register = 0;
-    let mut VE: Register = 0;
-    let mut VF: Register = 0;
-    let mut registers: Vec<u8> = Vec::new();
-    registers.push(V0);
-    registers.push(V1);
-    registers.push(V2);
-    registers.push(V3);
-    registers.push(V4);
-    registers.push(V5);
-    registers.push(V6);
-    registers.push(V7);
-    registers.push(V8);
-    registers.push(V9);
-    registers.push(VA);
-    registers.push(VB);
-    registers.push(VC);
-    registers.push(VD);
-    registers.push(VE);
-    registers.push(VF);
-    let mut I: AddressRegister = 0;
-    let mut stack: Stack = [0; 48];
-    let mut delay_timer: u64 = 0;
-    let mut sound_timer: u64 = 0;
-    let mut program_counter: u64 = 0;
-    let mut stack_counter: u64 = 0;
+    let mut memory: [u8; 0x1000] = [0; 0x1000];
+    let mut registers: [u8; 16] = [0; 16];
+    let mut I: u16 = 0;
+    let mut stack: [u8; 48] = [0; 48];
+    let mut delay_timer: usize = 0;
+    let mut sound_timer: usize = 0;
+    let mut program_counter: usize = 0;
+    let mut stack_counter: usize = 0;
+    let mut display_buffer_front: [[u8; 64]; 32] = [[0; 64]; 32];
 
     let mut program = fs::read("./example-programs/randomnumber.ch8")
         .map(|o| hex::encode(o))
@@ -91,58 +43,45 @@ fn main() {
     for opcode in opcodes {
         let intcode = opcode.chars().next().unwrap();
         let instructions: Vec<char> = opcode.chars().collect();
+        let opcode = u16::from_str_radix(opcode, 16).unwrap();
+        let nibbles = (
+            (opcode & 0xF000) >> 12 as u8,
+            (opcode & 0x0F00) >> 8 as u8,
+            (opcode & 0x00F0) >> 4 as u8,
+            (opcode & 0x000F) as u8
+        );
+        let nnn = (opcode & 0x0FFF) as usize;
+        let kk = (opcode & 0x00FF) as u8;
+        let x = nibbles.1 as usize;
+        let y = nibbles.2 as usize;
+        let n = nibbles.3 as usize;
 
-        match instructions[0] {
-            '0' => CLS(&instructions),
-            '1' => JP(&instructions),
-            '2' => JP(&instructions),
-            '3' => println!("SE Vx, byte; "),
-            '4' => println!("SNE Vx, byte; "),
-            '5' => println!("SE Vx, Vy; "),
-            '6' => println!("LD Vx, byte; "),
-            '7' => println!("ADD Vx, byte; "),
-            '8' => RegisterOperation(&instructions),
-            '9' => println!("SNE Vx, Vy; "),
-            'a' => println!("LD I, addr; "),
-            'b' => println!("JP V0, addr; "),
-            'c' => {
-                let mut rng = rand::thread_rng();
-                let mut rnd: u8 = rng.gen_range(0, 255);
-                let mut a = String::from("0");
-                let mut b = String::from("0");
-                a.push(instructions[2]);
-                b.push(instructions[3]);
-                let kk = format!("{}{}", instructions[2], instructions[3]);
-                let x = hex::decode(&kk).unwrap();
-                let result = (rnd & x[0]) as u8;
-                match instructions[1] {
-                    '0' => V0 = result,
-                    '1' => V1 = result,
-                    '2' => V2 = result,
-                    '3' => V3 = result,
-                    '4' => V4 = result,
-                    '5' => V5 = result,
-                    '6' => V6 = result,
-                    '7' => V7 = result,
-                    '8' => V8 = result,
-                    '9' => V9 = result,
-                    'a' => VA = result,
-                    'b' => VB = result,
-                    'c' => VC = result,
-                    'd' => VD = result,
-                    'e' => VE = result,
-                    'f' => VF = result,
-                    _ => panic!("Register V{} does not exist!", instructions[1]),
+        match nibbles {
+            (0x00, 0x00, 0x0e, 0x00) => {
+                display_buffer_front = [[0; 64]; 32];
+            },
+            (0x00, 0x00, 0x0e, 0x0e) => {
+                let addr = stack[47];
+                program_counter = addr as usize;
+                stack_counter -= 1;
+            },
+            (0x01, _, _, _) => {
+                program_counter = nnn;
+            },
+            (0x2, _, _, _) => {
+                stack_counter += 1;
+                stack[stack_counter] = program_counter as u8;
+                program_counter = nnn;
+            },
+            (0x03, _, _, _) => {
+                if registers[x] == kk {
+                    program_counter += 2;
                 }
-            }
-            'd' => println!("DRW Vx, Vy, nibble; "),
-            'e' => println!("SKP Vx, SKNP Vx; "),
-            'f' => IOOperation(&instructions, &memory, &registers),
-            _ => panic!("Not a valid OpCode!"),
+            },
+            (0x06, _, _, _) => println!("{} {}", x, kk),
+            _ => println!("OpCode Not Found!"),
         }
     }
-
-    println!("V0 value was set to {}", V0);
 
     // let mut events_loop = glium::glutin::EventsLoop::new();
     // let resolution = glium::glutin::dpi::LogicalSize::new(640.0, 320.0);
