@@ -25,8 +25,8 @@ fn display(buffer: [[u8; 64]; 32]) {
                 1 => vram.push('*'),
                 _ => panic!("Invalid vram"),
             }
-            vram.push('\n');
         }
+        vram.push('\n');
     }
 
     println!("{}", vram);
@@ -42,6 +42,129 @@ fn main() {
     let mut program_counter: usize = 0;
     let mut stack_counter: usize = 0;
     let mut display_buffer_front: [[u8; 64]; 32] = [[0; 64]; 32];
+    let mut sprites: [[u8; 5]; 16] = [[0; 5]; 16];
+    let sprite0 = [0xF0, 0x90, 0x90, 0x90, 0xF0];
+    let sprite1 = [
+        0x20,
+        0x60,
+        0x20,
+        0x20,
+        0x70,
+    ];
+    let sprite2 = [
+        0xF0,
+        0x10,
+        0xF0,
+        0x80,
+        0xF0,
+    ];
+    let sprite3 = [
+        0xF0,
+        0x10,
+        0xF0,
+        0x10,
+        0xF0,
+    ];
+    let sprite4 = [
+        0x90,
+        0x90,
+        0xF0,
+        0x10,
+        0x10,
+    ];
+    let sprite5 = [
+        0xF0,
+        0x80,
+        0xF0,
+        0x10,
+        0xF0,
+    ];
+    let sprite6 = [
+        0xF0,
+        0x80,
+        0xF0,
+        0x90,
+        0xF0,
+    ];
+    let sprite7 = [
+        0xF0,
+        0x10,
+        0x20,
+        0x40,
+        0x40,
+    ];
+    let sprite8 = [
+        0xF0,
+        0x90,
+        0xF0,
+        0x90,
+        0xF0,
+    ];
+    let sprite9 = [
+        0xF0,
+        0x90,
+        0xF0,
+        0x10,
+        0xF0,
+    ];
+    let spriteA = [
+        0xF0,
+        0x90,
+        0xF0,
+        0x90,
+        0x90,
+    ];
+    let spriteB = [
+        0xE0,
+        0x90,
+        0xE0,
+        0x90,
+        0xE0,
+    ];
+    let spriteC = [
+        0xF0,
+        0x80,
+        0x80,
+        0x80,
+        0xF0,
+    ];
+    let spriteD = [
+        0xE0,
+        0x90,
+        0x90,
+        0x90,
+        0xE0,
+    ];
+    let spriteE = [
+        0xF0,
+        0x80,
+        0xF0,
+        0x80,
+        0xF0,
+    ];
+    let spriteF = [
+        0xF0,
+        0x80,
+        0xF0,
+        0x80,
+        0x80,
+    ];
+    sprites[0x00] = sprite0;
+    sprites[0x01] = sprite1;
+    sprites[0x02] = sprite2;
+    sprites[0x03] = sprite3;
+    sprites[0x04] = sprite4;
+    sprites[0x05] = sprite5;
+    sprites[0x06] = sprite6;
+    sprites[0x07] = sprite7;
+    sprites[0x08] = sprite8;
+    sprites[0x09] = sprite9;
+    sprites[0x0A] = spriteA;
+    sprites[0x0B] = spriteB;
+    sprites[0x0C] = spriteC;
+    sprites[0x0D] = spriteD;
+    sprites[0x0E] = spriteE;
+    sprites[0x0F] = spriteF;
 
     let mut program = fs::read("./example-programs/randomnumber.ch8")
         .map(|o| hex::encode(o))
@@ -71,130 +194,6 @@ fn main() {
         let x = nibbles.1 as usize;
         let y = nibbles.2 as usize;
         let n = nibbles.3 as usize;
-
-        let mut sprites: [[u8; 5]; 16] = [[0; 5]; 16];
-        let sprite0 = [0xF0, 0x90, 0x90, 0x90, 0xF0];
-        let sprite1 = [
-            0x20,
-            0x60,
-            0x20,
-            0x20,
-            0x70,
-        ];
-        let sprite2 = [
-            0xF0,
-            0x10,
-            0xF0,
-            0x80,
-            0xF0,
-        ];
-        let sprite3 = [
-            0xF0,
-            0x10,
-            0xF0,
-            0x10,
-            0xF0,
-        ];
-        let sprite4 = [
-            0x90,
-            0x90,
-            0xF0,
-            0x10,
-            0x10,
-        ];
-        let sprite5 = [
-            0xF0,
-            0x80,
-            0xF0,
-            0x10,
-            0xF0,
-        ];
-        let sprite6 = [
-            0xF0,
-            0x80,
-            0xF0,
-            0x90,
-            0xF0,
-        ];
-        let sprite7 = [
-            0xF0,
-            0x10,
-            0x20,
-            0x40,
-            0x40,
-        ];
-        let sprite8 = [
-            0xF0,
-            0x90,
-            0xF0,
-            0x90,
-            0xF0,
-        ];
-        let sprite9 = [
-            0xF0,
-            0x90,
-            0xF0,
-            0x10,
-            0xF0,
-        ];
-        let spriteA = [
-            0xF0,
-            0x90,
-            0xF0,
-            0x90,
-            0x90,
-        ];
-        let spriteB = [
-            0xE0,
-            0x90,
-            0xE0,
-            0x90,
-            0xE0,
-        ];
-        let spriteC = [
-            0xF0,
-            0x80,
-            0x80,
-            0x80,
-            0xF0,
-        ];
-        let spriteD = [
-            0xE0,
-            0x90,
-            0x90,
-            0x90,
-            0xE0,
-        ];
-        let spriteE = [
-            0xF0,
-            0x80,
-            0xF0,
-            0x80,
-            0xF0,
-        ];
-        let spriteF = [
-            0xF0,
-            0x80,
-            0xF0,
-            0x80,
-            0x80,
-        ];
-        sprites[0x00] = sprite0;
-        sprites[0x01] = sprite1;
-        sprites[0x02] = sprite2;
-        sprites[0x03] = sprite3;
-        sprites[0x04] = sprite4;
-        sprites[0x05] = sprite5;
-        sprites[0x06] = sprite6;
-        sprites[0x07] = sprite7;
-        sprites[0x08] = sprite8;
-        sprites[0x09] = sprite9;
-        sprites[0x0A] = spriteA;
-        sprites[0x0B] = spriteB;
-        sprites[0x0C] = spriteC;
-        sprites[0x0D] = spriteD;
-        sprites[0x0E] = spriteE;
-        sprites[0x0F] = spriteF;
 
         
 
@@ -291,25 +290,32 @@ fn main() {
             },
             (0x0D, _, _, _) => {
                 let bytes = &memory[I..I+n];
+                println!("{:?}", bytes);
                 let mut xr = x;
                 let mut yr = y;
-                println!("{}", bytes[0]);
-                {
-                    let sprite = sprites[bytes[0]];
+                let mut xoffset = 0;
+                for byte in bytes {
+                    let sprite = sprites[*byte];
                     for row in &sprite {
                         let r = format!("{:b}", row);
-                        let items: Vec<_> = r.to_string().chars().map(|d| d.to_digit(10).unwrap()).collect();
-                        for item in items {
-                            display_buffer_front[yr][xr] = item as u8;
-                            xr = xr +1;
+                        let r = format!("{:0>8}", r);
+                        let pixels: Vec<_> = r.to_string().chars().map(|d| d.to_digit(10).unwrap()).collect();
+                        for pixel in pixels {
+                            display_buffer_front[yr][xr] = pixel as u8;
+                            // increment pixel x axis
+                            xr = xr + 1;
                         }
-                        xr = x;
+                        // move down to next row
                         yr = yr + 1;
+                        // reset x axis to start of sprite
+                        xr = xoffset;
                     }
-
-                    display(display_buffer_front);
+                    // reset y axis
+                    yr = y;
+                    // move along to next sprite position
+                    xoffset = xoffset + 8;
                 }
-                //display(display_buffer_front);
+                display(display_buffer_front);
             },
             (0x0F, _, 0x03, 0x03) => {
                 let digits: Vec<_> = registers[x].to_string().chars().map(|d| d.to_digit(10).unwrap()).collect();
